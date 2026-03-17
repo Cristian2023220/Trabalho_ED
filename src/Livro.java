@@ -1,9 +1,8 @@
-import java.io.Serializable; // Importação necessária
+import java.io.Serializable;
 
-// Adicione "implements Serializable" aqui
+
 public class Livro implements Comparable<Livro>, Serializable {
-    
-    // Boa prática em serialização (controle de versão da classe), mas opcional em projetos simples
+
     private static final long serialVersionUID = 1L; 
 
     private String titulo;

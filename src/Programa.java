@@ -4,8 +4,6 @@ import java.io.*;
 import java.util.*;
 
 public class Programa {
-
-    // --- VARIÁVEIS GLOBAIS ---
     private static List<Livro> listaLivros = new LinkedList<>();
     // Nome fixo para o arquivo de persistência
     private static final String ARQUIVO_DADOS = "banco_livros.dat";
@@ -31,9 +29,10 @@ public class Programa {
             return new NoArvore(novoLivro);
         }
 
-        // Critério: Número de Páginas
+        // Critério: Número de Páginas- MENOR Á ESQUERDA
         if (novoLivro.getNumeroPaginas() < atual.livro.getNumeroPaginas()) {
             atual.esquerda = inserirNaArvore(atual.esquerda, novoLivro);
+            // Critério: Número de Páginas- MAIOR OU IGUAL A DIREITA
         } else {
             atual.direita = inserirNaArvore(atual.direita, novoLivro);
         }
@@ -58,7 +57,7 @@ public class Programa {
         }
     }
 
-    // --- MÉTODO MAIN ---
+    
     public static void main(String[] args) {
 
         // 1. AUTO-RECUPERAÇÃO AO INICIAR
@@ -91,12 +90,15 @@ public class Programa {
 
             // --- 1. Incluir livro na LISTA ---
             if (opcao == 0) {
+
+                // pega dados do usuario
                 String titulo = JOptionPane.showInputDialog(null, "Digite o Título do livro:");
 
                 if (titulo != null && !titulo.trim().isEmpty()) {
                     String genero = JOptionPane.showInputDialog(null, "Digite o Gênero (Ex: Romance, Terror, Técnico):");
                     String paginasStr = JOptionPane.showInputDialog(null, "Digite o número de páginas:");
 
+                    // adiciona na lista
                     try {
                         int numeroPaginas = Integer.parseInt(paginasStr);
                         Livro novoLivro = new Livro(titulo, genero, numeroPaginas);
@@ -110,18 +112,20 @@ public class Programa {
 
             // --- 2. Deletar livro da LISTA (Última ocorrência) ---
             if (opcao == 1) {
+                //Cria string
                 String tituloParaRemover = JOptionPane.showInputDialog(null,
                         "Digite o título do livro para remover (apenas a última ocorrência):");
 
                 if (tituloParaRemover != null && !tituloParaRemover.trim().isEmpty()) {
                     boolean removido = false;
+                    // for invertido
                     for (int i = listaLivros.size() - 1; i >= 0; i--) {
                         Livro livroAtual = listaLivros.get(i);
-                        if (livroAtual.getTitulo().equalsIgnoreCase(tituloParaRemover)) {
+                        if (livroAtual.getTitulo().equalsIgnoreCase(tituloParaRemover)) { //tamanho da lista -1; rodar até 0; decremento
                             listaLivros.remove(i);
                             removido = true;
                             JOptionPane.showMessageDialog(null, "A última ocorrência do livro '" + tituloParaRemover + "' foi removida.");
-                            break;
+                            break; // ao achar o livro, para o laço
                         }
                     }
                     if (!removido) {
@@ -137,7 +141,7 @@ public class Programa {
                 } else {
                     StringBuilder listaTexto = new StringBuilder();
                     listaTexto.append("--- LIVROS CADASTRADOS ---\n\n");
-                    for (Livro l : listaLivros) {
+                    for (Livro l : listaLivros) { // for-each vai do primeiro até o ultimo
                         listaTexto.append(l.toString()).append("\n");
                     }
                     JOptionPane.showMessageDialog(null, listaTexto.toString());
@@ -156,7 +160,7 @@ public class Programa {
 
                     StringBuilder filaTexto = new StringBuilder();
                     filaTexto.append("--- FILA DE PRIORIDADE (Menos páginas primeiro) ---\n\n");
-                    while (!filaPrioridade.isEmpty()) {
+                    while (!filaPrioridade.isEmpty()) { // laço whille com o poll() para extrair e imprimir a lista
                         filaTexto.append(filaPrioridade.poll().toString()).append("\n");
                     }
                     JOptionPane.showMessageDialog(null, filaTexto.toString());
@@ -168,11 +172,12 @@ public class Programa {
                 if (listaLivros.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "A lista está vazia! Não há livros para empilhar.");
                 } else {
+                    // Cria HashMap (chave String, vaalor Stack,Livro)
                     Map<String, Stack<Livro>> mapaPilhas = new HashMap<>();
 
                     for (Livro l : listaLivros) {
-                        String genero = l.getGenero().trim().toUpperCase();
-                        if (!mapaPilhas.containsKey(genero)) {
+                        String genero = l.getGenero().trim().toUpperCase(); // tirar espaços e garante padronização
+                        if (!mapaPilhas.containsKey(genero)) { // se não tiver genero cria um novo
                             mapaPilhas.put(genero, new Stack<>());
                         }
                         mapaPilhas.get(genero).push(l);
@@ -238,7 +243,7 @@ public class Programa {
                     serializador.gravarArquivoAutomatico(listaLivros, ARQUIVO_DADOS);
                     JOptionPane.showMessageDialog(null, "Lista salva com sucesso em " + ARQUIVO_DADOS);
                 }
-            } // Faltava fechar esta chave no seu código original
+            }
 
             // --- 8. Recuperar (Manual) ---
             if (opcao == 7) {
@@ -256,14 +261,19 @@ public class Programa {
                 if (listaLivros.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "A lista de livros do sistema está vazia.");
                 } else {
+
+                    // 2. SELEÇÃO DO ARQUIVO EXTERNO
                     JFileChooser chooser = new JFileChooser();
                     chooser.setDialogTitle("Selecione o arquivo de texto com os títulos");
                     int retorno = chooser.showOpenDialog(null);
 
                     if (retorno == JFileChooser.APPROVE_OPTION) {
-                        File arquivo = chooser.getSelectedFile();
-                        List<String> linhasDoArquivo = new ArrayList<>();
+                        File arquivo = chooser.getSelectedFile(); // Pega o arquivo físico escolhido
+                        List<String> linhasDoArquivo = new ArrayList<>(); // Lista temporária para guardar o texto
 
+
+                        // 'try-with-resources' garante que o arquivo seja fechado ao final
+                        // BufferedReader carrega pedaços do arquivo na memória RAM para leitura rápida
                         try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
                             String linha;
                             while ((linha = br.readLine()) != null) {
@@ -276,23 +286,29 @@ public class Programa {
                             continue;
                         }
 
-                        List<String> indiceInvertido = new ArrayList<>();
+                        List<String> indiceInvertido = new ArrayList<>(); // Lista para guardar os resultados finais
+
+                        // Loop Externo: Percorre cada livro que já existe na memória do nosso sistema
                         for (Livro livroDoSistema : listaLivros) {
-                            int contador = 0;
+                            int contador = 0; // Zera o contador para o livro atual
+
+                            // Loop Interno: Percorre todas as linhas que lemos do arquivo de texto
                             for (String tituloNoArquivo : linhasDoArquivo) {
                                 if (livroDoSistema.getTitulo().equalsIgnoreCase(tituloNoArquivo)) {
-                                    contador++;
+                                    contador++; // Se for igual, achamos uma ocorrência! Soma 1.
                                 }
                             }
                             indiceInvertido.add(livroDoSistema.getTitulo() + " - " + contador);
                         }
 
-                        StringBuilder resultado = new StringBuilder();
+                        StringBuilder resultado = new StringBuilder(); // Buffer de texto
                         resultado.append("--- FREQUÊNCIA DE LIVROS (Índice) ---\n\n");
+
                         for (String item : indiceInvertido) {
                             resultado.append(item).append("\n");
                         }
                         JOptionPane.showMessageDialog(null, resultado.toString());
+
                     } else {
                         JOptionPane.showMessageDialog(null, "Operação cancelada.");
                     }
